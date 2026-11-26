@@ -34,7 +34,7 @@ def test_invite() -> None:
         f"Write a short invitation email to a guest for: {uncle.EVENT}. "
         f"It's from {config.host_name()}'s assistant. Ask them to reply with "
         "whether they're coming, any dietary needs, and what they could bring. "
-        "Plain text only, no subject line, no markdown."
+        "Address the guest as Tunmise. Sign off as: Uncle Gus, on behalf of " + config.host_name() + ". Never use placeholders in square brackets. Plain text only, no subject line, no markdown."
     )
     result = email.send(config.test_guest_email(), "You're invited! 🎄", body)
     print(f"Sent to {config.test_guest_email()}: {result}")

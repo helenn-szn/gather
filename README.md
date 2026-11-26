@@ -52,13 +52,9 @@ For each one, in **Access Configuration**, set **Name Prefix** to `gather-`.
 ### 4. Telegram bot
 1. In Telegram, message **@BotFather**, send `/newbot`, pick a name like
    "Uncle Gather" and copy the token.
-2. Telegram expects the token in the URL: `https://api.telegram.org/bot<TOKEN>/getMe`.
-   Create a Custom API connector with base URL `https://api.telegram.org`
-   and token delivery **URL path**. Because Telegram needs the word `bot`
-   directly before the token, enter the token value as `bot<TOKEN>`
-   (e.g. `bot123456:ABC-xyz`). Use `/getMe` as the test request; it should
-   return your bot's details. If the dashboard places the token differently,
-   adjust until `/getMe` works there before moving on.
+2. Create a Custom API connector: base URL `https://api.telegram.org`, access
+   token = the raw BotFather token, authentication method **URL path**, URL path
+   template `/bot{token}`, test URL `/getMe`.
 
 ### 5. Code on the Sprite
 Push this folder to a GitHub repo (you need one for the submission anyway), then:
