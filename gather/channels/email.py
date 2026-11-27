@@ -68,15 +68,21 @@ def _name(raw) -> str:
     return name or _address(raw).split("@")[0]
 
 
-def get_full_text(message_id: str, preview: str = "") -> str:
-    """Full body if the connector allows it, otherwise the list preview."""
+def get_message(message_id: str) -> dict | None:
+    """The full message, or None if the connector doesn't allow reading it."""
     try:
-        msg = gateway.call("GET", config.agentmail_base(),
-                           _inbox_path(f"/{gateway.quote(message_id)}"))
+        return gateway.call("GET", config.agentmail_base(), _inbox_path(f"/{gateway.quote(message_id)}"))
     except gateway.GatewayError as exc:
         if _blocked(exc):
-            return preview.strip()
+            return None
         raise
+
+
+def get_full_text(message_id: str, preview: str = "", msg: dict | None = None) -> str:
+    """Full body if the connector allows it, otherwise the list preview."""
+    msg = msg if msg is not None else get_message(message_id)
+    if msg is None:
+        return preview.strip()
     # extracted_text strips quoted history from replies, which is what we want.
     return (msg.get("extracted_text") or msg.get("text") or preview or "").strip()
 
@@ -93,11 +99,14 @@ def fetch_new(seen_ids: list[str], limit: int = 25) -> list[IncomingMessage]:
         if mid in seen_ids or sender == own:
             continue  # already handled, or a message Gather sent itself
         _SEEN_META[mid] = (sender, item.get("subject") or "Your invitation")
+        full = get_message(mid)
         new.append(IncomingMessage(
             channel="email",
             sender_id=sender,
             sender_name=_name(item.get("from")),
-            text=get_full_text(mid, item.get("preview") or ""),
+            text=get_full_text(mid, item.get("preview") or "", full),
             reply_ref=mid,
+            attachments=[a for a in ((full or {}).get("attachments") or item.get("attachments") or [])
+                         if isinstance(a, dict)],
         ))
     return list(reversed(new))  # oldest first

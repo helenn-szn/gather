@@ -94,6 +94,7 @@ GUEST_COLUMNS = {  # added after the first release; created if missing
     "group_link_sent": "INTEGER NOT NULL DEFAULT 0",
     "group_joined": "INTEGER NOT NULL DEFAULT 0",
     "bring_category": "TEXT",
+    "wishlist": "TEXT",
 }
 
 
@@ -114,12 +115,37 @@ def create_event(data: dict) -> int:
         return cur.lastrowid
 
 
-def current_event() -> dict | None:
-    with db() as c:
-        row = c.execute("SELECT * FROM event ORDER BY id DESC LIMIT 1").fetchone()
+def _event(row) -> dict | None:
     if not row:
         return None
-    return {"id": row["id"], **json.loads(row["data"])}
+    return {"id": row["id"], **json.loads(row["data"]), "created_at": row["created_at"]}
+
+
+def event_by_id(event_id: int) -> dict | None:
+    with db() as c:
+        return _event(c.execute("SELECT * FROM event WHERE id=?", (event_id,)).fetchone())
+
+
+def list_events() -> list[dict]:
+    with db() as c:
+        rows = c.execute("SELECT * FROM event ORDER BY id DESC").fetchall()
+    return [_event(r) for r in rows]
+
+
+def current_event() -> dict | None:
+    """The event Uncle Gus is working on: the one the host launched last
+    (or, for older databases, the newest event)."""
+    active = get_kv("active_event")
+    if active:
+        ev = event_by_id(int(active))
+        if ev:
+            return ev
+    with db() as c:
+        return _event(c.execute("SELECT * FROM event ORDER BY id DESC LIMIT 1").fetchone())
+
+
+def set_active_event(event_id: int) -> None:
+    set_kv("active_event", str(event_id))
 
 
 def update_event(event_id: int, **fields) -> None:
@@ -152,6 +178,11 @@ def add_guest(event_id: int, name: str, email: str | None = None) -> int:
             "INSERT INTO guests (event_id, name, email, invite_code) VALUES (?, ?, ?, ?)",
             (event_id, name, (email or "").strip().lower() or None, code))
         return cur.lastrowid
+
+
+def remove_guest(guest_id: int) -> None:
+    with db() as c:
+        c.execute("DELETE FROM guests WHERE id=?", (guest_id,))
 
 
 def guests(event_id: int) -> list[dict]:

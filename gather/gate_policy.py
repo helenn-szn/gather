@@ -90,6 +90,11 @@ class Policy:
         return Decision(False, f"unknown service {service}", "write")
 
     def _agentmail(self, method: str, path: str, params: dict, body: dict) -> Decision:
+        att = re.fullmatch(r"/v0/inboxes/([^/]+)/messages/[^/]+/attachments/[^/]+", path)
+        if att:  # reading a guest's photo attachment
+            if method == "GET" and unquote(att.group(1)).lower() == self.inbox:
+                return Decision(True, "read", "read")
+            return Decision(False, "attachment action not allowed", "write")
         m = re.fullmatch(r"/v0/inboxes/([^/]+)/messages(?:/(send)|/([^/]+?)(/reply)?)?", path)
         if not m or unquote(m.group(1)).lower() != self.inbox:
             return Decision(False, "only Gather's own inbox messages are allowed", "write")
@@ -138,6 +143,16 @@ class Policy:
                 return Decision(False, "group not connected by the host", "write")
             return self._text_and_rate(body.get("text", ""), "tg:" + chat,
                                        GROUP_PER_HOUR if is_group else PER_RECIPIENT_PER_HOUR)
+        if method == "copyMessage":  # a guest's photo, copied into the event group
+            if set(body) - {"chat_id", "from_chat_id", "message_id"}:
+                return Decision(False, "only a plain copy is allowed", "write")
+            if chat not in self.groups:
+                return Decision(False, "group not connected by the host", "write")
+            if str(body.get("from_chat_id", "")).startswith("-"):
+                return Decision(False, "can only copy from private chats with guests", "write")
+            if not self._rate_ok("tg:" + chat, GROUP_PER_HOUR * 2):
+                return Decision(False, "rate limit reached for the group", "write")
+            return Decision(True, "copyMessage", "write:tg:" + chat)
         if method in ("createChatInviteLink", "approveChatJoinRequest", "declineChatJoinRequest",
                       "pinChatMessage"):
             if chat not in self.groups:

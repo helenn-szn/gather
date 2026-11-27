@@ -5,7 +5,7 @@
 so Uncle's logic doesn't care whether a guest wrote by email or Telegram.
 Adding WhatsApp later means adding one more module here.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -15,3 +15,4 @@ class IncomingMessage:
     sender_name: str
     text: str
     reply_ref: str      # what the channel needs to reply in-thread
+    attachments: list = field(default_factory=list)  # email attachments (for photos)

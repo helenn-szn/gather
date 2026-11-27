@@ -5,7 +5,7 @@ One `tick()` checks email, checks Telegram, then sends any follow-ups due.
 """
 import time
 
-from . import config, groups, llm, memory, outbox, potluck, store, uncle
+from . import calendar_links, config, groups, llm, memory, outbox, photos, potluck, store, uncle
 from .channels import IncomingMessage, email, telegram
 
 _bot_username: str | None = None
@@ -46,7 +46,8 @@ def invite_all() -> None:
         if remembered:
             store.activity("memory", f"Remembered {guest['name']} from a past event")
         text = llm.write_invitation(uncle.facts_for(event, guest), guest["name"], link, remembered)
-        subject = f"You're invited: {event.get('name', 'a gathering')} 🎄"
+        from . import themes
+        subject = f"You're invited: {event.get('name', 'a gathering')} {themes.get(event.get('type'))['emoji']}"
         if outbox.send_to_guest(guest["id"], text, subject=subject, kind="invitation"):
             store.update_guest(guest["id"], status="invited", invited_at=time.time())
 
@@ -68,6 +69,7 @@ def _reply(guest: dict, msg: IncomingMessage, event: dict) -> None:
                                  reply_ref=msg.reply_ref if msg.channel == "email" else None,
                                  kind="potluck")
     if was != "attending" and now["status"] == "attending":
+        calendar_links.send_to(event, now, channel=msg.channel)  # "add to calendar" links
         groups.share_link(event, now)  # just confirmed: send their group link
 
 
@@ -79,6 +81,14 @@ def process_email(event: dict) -> None:
             # Not on the guest list: never answer (this also ignores newsletters,
             # welcome emails and anyone trying to talk Gus into things).
             store.activity("ignored", f"Ignored email from {msg.sender_id} (not on the guest list)")
+            continue
+        saved = photos.save_email_photos(event, guest, msg.reply_ref, msg.attachments) if msg.attachments else 0
+        if saved and len(msg.text.strip()) < 40:
+            # Just photos (maybe "here you go!"): say thanks without bothering the model.
+            outbox.send_to_guest(guest["id"], f"Got {saved} photo{'s' if saved > 1 else ''}, thank you! "
+                                 "They're in the album now.\n\nUncle Gus", reply_ref=msg.reply_ref,
+                                 channel="email", kind="photos")
+            store.update_guest(guest["id"], last_inbound_at=time.time())
             continue
         _reply(guest, msg, event)
 
@@ -98,6 +108,9 @@ def process_telegram(event: dict, wait_seconds: int) -> None:
                     groups.handle_bot_added(event, m["chat"])
             elif "message" in u:
                 msg = u["message"]
+                if msg.get("photo"):
+                    _telegram_photo(event, msg)
+                    continue
                 if msg["chat"].get("type") in ("group", "supergroup"):
                     text = msg.get("text", "")
                     if text.startswith("/connect"):
@@ -109,6 +122,24 @@ def process_telegram(event: dict, wait_seconds: int) -> None:
                     _private_telegram(event, telegram.as_incoming(msg))
         except Exception as exc:  # one bad update must not stop the rest
             store.activity("info", f"Telegram update failed: {exc}")
+
+
+def _telegram_photo(event: dict, msg: dict) -> None:
+    in_group = msg["chat"].get("type") in ("group", "supergroup")
+    if in_group:
+        info = groups.group(event)
+        if not info or str(msg["chat"]["id"]) != info["chat_id"]:
+            return
+        guest = store.guest_by_telegram_user(event["id"], str(msg.get("from", {}).get("id", "")))
+        photos.save_telegram_photo(event, guest, msg, in_group=True)
+        return
+    guest = store.guest_by_telegram(event["id"], str(msg["chat"]["id"]))
+    if not guest:
+        store.activity("ignored", "Ignored a Telegram photo from someone who isn't a linked guest")
+        return
+    copied = photos.save_telegram_photo(event, guest, msg, in_group=False)
+    outbox.send_to_guest(guest["id"], "Lovely, thank you! " + ("I've added it to the group album." if copied
+                         else "It's saved for the album.") + "\n\nUncle Gus", channel="telegram", kind="photos")
 
 
 def _private_telegram(event: dict, msg: IncomingMessage) -> None:

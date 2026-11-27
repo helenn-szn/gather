@@ -7,6 +7,7 @@ tone of his messages. Everything sits on the base Gather brand.
 
 THEMES = {
     "dinner": {
+        "emoji": "🍽️",
         "label": "Dinner party",
         "colors": {"primary": "#5F6F52", "accent": "#C4661F", "bg": "#FEFAE0",
                    "surface": "#FFFDF0", "soft": "#F9EBC7", "ink": "#2E3628",
@@ -15,6 +16,7 @@ THEMES = {
         "tone": "warm and gracious, like a host pouring the first glass",
     },
     "birthday": {
+        "emoji": "🎂",
         "label": "Birthday",
         "colors": {"primary": "#7A3E9D", "accent": "#F2B134", "bg": "#FFF8EE",
                    "surface": "#FFFFFF", "soft": "#F6E7F7", "ink": "#2B2033",
@@ -23,6 +25,7 @@ THEMES = {
         "tone": "playful and excited, a little over the top, celebrating the birthday person",
     },
     "wedding": {
+        "emoji": "💍",
         "label": "Wedding",
         "colors": {"primary": "#56695A", "accent": "#B8935A", "bg": "#FBF8F2",
                    "surface": "#FFFFFF", "soft": "#EFF0E6", "ink": "#2C2A26",
@@ -31,6 +34,7 @@ THEMES = {
         "tone": "elegant, heartfelt and polite, never jokey about the couple",
     },
     "holiday": {
+        "emoji": "🎄",
         "label": "Holiday celebration",
         "colors": {"primary": "#2F5D50", "accent": "#B23A3A", "bg": "#F8F4EC",
                    "surface": "#FFFDF8", "soft": "#ECE6DA", "ink": "#22302B",
@@ -39,6 +43,7 @@ THEMES = {
         "tone": "cosy and festive, respectful of whichever holiday the host is celebrating",
     },
     "bbq": {
+        "emoji": "🔥",
         "label": "BBQ / outdoor",
         "colors": {"primary": "#8A3B1E", "accent": "#E0A030", "bg": "#FFF7EA",
                    "surface": "#FFFFFF", "soft": "#F8E6CC", "ink": "#2E211A",
@@ -46,9 +51,25 @@ THEMES = {
         "accessory": "apron",
         "tone": "relaxed and sunny, like someone flipping burgers and telling stories",
     },
+    "other": {
+        "emoji": "✨",
+        "label": "Other",
+        "colors": {"primary": "#52525B", "accent": "#E8630F", "bg": "#FAFAFA",
+                   "surface": "#FFFFFF", "soft": "#F1F1F3", "ink": "#18181B",
+                   "muted": "#52525B", "line": "#E4E4E7", "danger": "#B4452A"},
+        "accessory": "none",
+        "tone": "friendly and warm, matched to the kind of gathering the host describes",
+    },
 }
 
 DEFAULT = "dinner"
+
+
+def label_for(event: dict) -> str:
+    """The event type as the host named it ("Baby shower" for an Other event)."""
+    if (event.get("type") or "") == "other" and event.get("type_label"):
+        return event["type_label"]
+    return get(event.get("type"))["label"]
 
 
 def get(event_type: str | None) -> dict:

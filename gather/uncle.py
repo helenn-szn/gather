@@ -20,15 +20,26 @@ STATUS_FROM_ATTENDING = {"yes": "attending", "no": "declined", "maybe": "maybe"}
 
 def facts_for(event: dict, guest: dict | None) -> dict:
     """What Gus may tell this guest. Private details only go to confirmed guests."""
-    private = ("id", "confirmed_only", "budget", "host_code", "type")
+    private = ("id", "confirmed_only", "budget", "host_code", "type", "created_at", "status",
+               "date_iso", "rsvp_iso", "launched_at", "type_label", "timezone", "food")
     facts = {k: v for k, v in event.items() if k not in private}
     theme = themes.get(event.get("type"))
-    facts["event_type"] = theme["label"]
+    facts["event_type"] = themes.label_for(event)
     facts["style"] = theme["tone"]
+    food = event.get("food", "home")
+    if food == "out":
+        facts["food"] = "We're eating out. Guests don't need to bring food; they just order and enjoy."
+    elif food == "catered":
+        facts["food"] = "The food is catered. Guests don't need to bring food."
     if guest and guest.get("status") == "attending":
         facts.update(event.get("confirmed_only", {}))
     else:
         facts["note"] = "Some details (like the exact address) are shared after the guest confirms."
+    if guest:
+        from . import santa
+        ss = santa.facts_for_guest(event, guest)
+        if ss:
+            facts["secret_santa"] = ss
     return facts
 
 
@@ -60,6 +71,8 @@ def apply_updates(guest: dict, parsed: dict, source: str = "") -> dict:
         updates["party_size"] = size
     if parsed.get("dietary"):
         updates["dietary"] = sorted(set(guest["dietary"]) | set(parsed["dietary"]))
+    if parsed.get("wishlist") and str(parsed["wishlist"]).strip() != (guest.get("wishlist") or ""):
+        updates["wishlist"] = str(parsed["wishlist"]).strip()[:300]
     if parsed.get("bringing"):
         updates["bringing"] = parsed["bringing"]
         updates["bring_category"] = None  # recategorised on the next duplicate check
@@ -86,9 +99,12 @@ def handle_guest_message(event: dict, guest: dict, msg: IncomingMessage) -> str:
         return ("Thank you! I've noted your reply. Anything beyond your RSVP goes "
                 f"to {event.get('host_name', 'the host')} to decide.\n\nUncle Gus")
 
-    apply_updates(guest, parsed)
+    changes = apply_updates(guest, parsed)
 
     guest = store.guest_by_id(guest["id"])  # fresh, so confirmed details unlock
+    if changes.get("wishlist"):
+        from . import santa
+        santa.wishlist_updated(event, guest)
 
     # Long-term memory (Pinecone): save what we learned, recall past events.
     note_parts = [parsed.get("summary") or ""]

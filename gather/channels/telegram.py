@@ -46,6 +46,11 @@ def pin(chat_id: int | str, message_id: int) -> None:
     _call("pinChatMessage", chat_id=chat_id, message_id=message_id, disable_notification=True)
 
 
+def copy_message(to_chat: int | str, from_chat: int | str, message_id: int) -> dict:
+    """Copy a message (e.g. a guest's photo) into another chat, without downloading it."""
+    return _call("copyMessage", chat_id=to_chat, from_chat_id=from_chat, message_id=message_id)
+
+
 def fetch_updates(offset: int, wait_seconds: int = 20) -> tuple[list[dict], int]:
     """Raw updates: private and group messages, join requests, bot membership."""
     updates = _call("getUpdates", offset=offset, timeout=wait_seconds,

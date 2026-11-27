@@ -103,7 +103,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(401, {"error": "bad or missing signature"})
         if self.path == "/stats":
             return self._send(200, {k: _state[k] for k in ("allowed", "blocked", "recent_blocks")}
-                              | {"groups": len(policy().groups), "guests": len(policy().emails)})
+                              | {"groups": len(policy().groups), "guests": len(policy().emails),
+                                 "policy_updates": _state.get("policy_updates", 0)})
+        if self.path == "/policy":
+            return self._update_policy(raw)
         if self.path != "/proxy":
             return self._send(404, {"error": "not found"})
         req = json.loads(raw)
@@ -136,6 +139,28 @@ class Handler(BaseHTTPRequestHandler):
             _state["allowed"] += 1
             audit(entry)
         self._send(200, result)
+
+
+def _policy_update(self, raw: bytes) -> None:
+    """The host launched or switched an event: replace the email allowlist and
+    connect code. Only the dashboard's launch button sends this, never the AI."""
+    try:
+        req = json.loads(raw)
+        emails = sorted({str(e).strip().lower() for e in req.get("emails", []) if "@" in str(e)})[:300]
+        code = str(req.get("host_code", "")).strip().upper()[:12]
+    except (ValueError, AttributeError):
+        return self._send(400, {"error": "bad request"})
+    with _lock:
+        data = json.loads(GATE_FILE.read_text()) if GATE_FILE.exists() else {}
+        data.update({"inbox": data.get("inbox") or config.inbox_id(), "emails": emails, "host_code": code})
+        GATE_FILE.write_text(json.dumps(data, indent=2))
+        _state["policy_updates"] = _state.get("policy_updates", 0) + 1
+    audit({"service": "policy", "method": "UPDATE", "path": str(req.get("event", ""))[:80],
+           "allowed": True, "reason": f"host updated the guest list: {len(emails)} email(s)"})
+    self._send(200, {"ok": True, "emails": len(emails)})
+
+
+Handler._update_policy = _policy_update
 
 
 def serve() -> None:

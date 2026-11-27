@@ -9,3 +9,4 @@ gate_audit.jsonl
 event.json
 .env.broken
 gate_secret.txt
+photos/

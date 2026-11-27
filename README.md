@@ -31,6 +31,29 @@ Sprite**.
   guests (forwarded links are declined), answers questions when mentioned and
   posts pinned updates.
 - **Live dashboard** for the host: RSVPs, headcount, food, alerts, and a feed of everything Gus does.
+- **Create events in the browser:** pick a type (or "Other" with your own label), fill in the
+  details, add guests (email, Telegram-only, or paste a list), review and launch. Launching
+  updates the policy gate's guest list automatically. Several events, with a switcher.
+- **Calendar invites:** confirmed guests get "Add to calendar" links (Google, Outlook) with
+  the private address included, in the event's time zone.
+- **Secret Santa:** the host draws names from the dashboard; each confirmed guest is told
+  privately who they're buying for and that person's wishlist. Guests tell Gus their
+  wishlist anytime and he passes it on quietly. Nobody learns who drew them.
+- **Food plan per event:** cooking at home, eating out, or catered. For eating out and
+  catered events Gus doesn't ask guests to bring dishes, and there's no cooking plan.
+- **Cooking plan** (home cooking only): the host lists what they're cooking; Gus builds a
+  timeline working back from serving time, scaled to the headcount, leaving out what
+  guests are bringing.
+- **Budget planner and shopping list:** give a budget (any currency) and Gus works out the
+  amount per head, drafts a menu that covers every dietary need (sized for the people who
+  need it), skips what guests are bringing, and writes a shopping list with quantities and
+  estimated prices that fits the budget with about 10% spare. Tick items as you buy them
+  and enter what you paid: it's logged as spending. When RSVPs or diets change, the page
+  says so and offers to re-plan. Eating out: a per-head target for the restaurant.
+  Catered: a per-head target for quotes. Only the host sees any of it.
+- **Photo album:** after the event Gus asks confirmed guests for photos. Emailed photos are
+  saved on the Sprite and shown in a dashboard gallery (download all as a zip); Telegram
+  photos are copied into the event group.
 
 ```
 gather/
@@ -46,6 +69,12 @@ gather/
   gate_sign.py     request signing between agent and gate
   groups.py        Telegram group: connect, join links, Q&A, announcements
   potluck.py       duplicate-dish resolver
+  events.py        create, edit and launch events from the dashboard
+  calendar_links.py  "Add to calendar" links
+  santa.py         Secret Santa draw and private messages
+  photos.py        photo collection and album
+  cooking.py       the host's cooking timeline
+  budget.py        expenses against the event budget
   themes.py        event theme packs
   agent.py         invite, listen (email + Telegram), follow up
   dashboard.py     live host dashboard (port 8080)
@@ -95,11 +124,12 @@ python3 -m scripts.smoke_test telegram
 ```
 
 ### 4. Create your event
+Easiest: open the dashboard and click **New event**. Or from a file:
 ```bash
 cp event.example.json event.json && nano event.json
 python3 -m scripts.setup_event event.json
 ```
-Set `"type"` to `dinner`, `birthday`, `wedding`, `holiday` or `bbq`. Setup prints
+Set `"type"` to `dinner`, `birthday`, `wedding`, `holiday`, `bbq` or `other` (with `"type_label"`). Setup prints
 a `/connect` code for the Telegram group.
 
 ### 4b. Telegram group (optional)
@@ -174,9 +204,5 @@ Demo the gate from the agent: `python3 -m scripts.try_escape attacker@example.co
 - **Dashboard says you need the key:** add `?key=...` to the URL.
 - **Service not running:** `sprite-env services list` and the log file above.
 
-## Next (Saturday)
-- **Policy gate Sprite:** a second Sprite, `gather-gate`, holds the only send
-  access (connector `allowed_endpoints`); `gather-agent` keeps read-only access
-  and asks the gate to send. Outbox rules move there.
-- Host approvals by phone (Pushover), duplicate-dish resolver, calendar invites,
-  Uncle's Gazette, memory across events.
+## Next
+- Uncle's Gazette (a newsletter recap after the event), WhatsApp channel.
