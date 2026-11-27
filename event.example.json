@@ -1,0 +1,35 @@
+{
+  "event": {
+    "type": "holiday",
+    "name": "Christmas Dinner",
+    "host_name": "Helen",
+    "date": "Saturday 20 December 2026",
+    "time": "6:00 p.m. (dinner served at 7)",
+    "location": "Helen's home, New York",
+    "budget": "$300",
+    "rsvp_by": "Monday 15 December",
+    "details": {
+      "dress code": "Festive casual. Christmas jumpers very welcome.",
+      "menu": "Jollof rice, roast chicken, salad, and whatever guests bring.",
+      "plus ones": "Possible, but the host decides. Uncle Gus will ask her.",
+      "parking": "Street parking on the block.",
+      "kids": "Welcome."
+    },
+    "confirmed_only": {
+      "address": "Replace with the real address. Only shared with guests who confirmed."
+    }
+  },
+  "guests": [
+    {
+      "name": "Tunmise",
+      "email": "tunmisealabi62@gmail.com"
+    },
+    {
+      "name": "Friend Two",
+      "email": "friend.two@example.com"
+    },
+    {
+      "name": "Telegram Friend"
+    }
+  ]
+}

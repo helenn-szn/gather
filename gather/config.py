@@ -70,4 +70,66 @@ def host_name() -> str:
     return _get("HOST_NAME", "your host", required=False)
 
 
+def telegram_bot_username() -> str:
+    """Optional. Looked up from Telegram (getMe) if not set."""
+    return _get("TELEGRAM_BOT_USERNAME", "", required=False).lstrip("@")
+
+
+# Follow-ups: how long to wait for a reply before chasing, and how many times.
+# For the demo, set FOLLOWUP_AFTER_MINUTES=3 so you can watch it happen.
+def followup_after_minutes() -> float:
+    return float(_get("FOLLOWUP_AFTER_MINUTES", "1440", required=False))
+
+
+def max_followups() -> int:
+    return int(_get("MAX_FOLLOWUPS", "2", required=False))
+
+
+# Outbox rules (Saturday these move to the separate policy-gate Sprite).
+def max_messages_per_guest_per_hour() -> int:
+    return int(_get("MAX_MESSAGES_PER_GUEST_PER_HOUR", "6", required=False))
+
+
+def poll_seconds() -> int:
+    return int(_get("POLL_SECONDS", "10", required=False))
+
+
+def dashboard_key() -> str:
+    """Secret needed to open the dashboard: https://<sprite-url>/?key=<this>"""
+    return _get("DASHBOARD_KEY")
+
+
+def dashboard_port() -> int:
+    return int(_get("DASHBOARD_PORT", "8080", required=False))
+
+
+# Pinecone memory (optional). Gateway URL of the Pinecone connector.
+def pinecone_gateway() -> str:
+    return _get("PINECONE_GATEWAY", "", required=False)
+
+
+def pinecone_index() -> str:
+    """Set when using the built-in Pinecone connector (records API by index name)."""
+    return _get("PINECONE_INDEX", "", required=False)
+
+
+def pinecone_namespace() -> str:
+    return _get("PINECONE_NAMESPACE", "gather-guests", required=False)
+
+
+def pinecone_text_field() -> str:
+    """The index field that has integrated embedding."""
+    return _get("PINECONE_TEXT_FIELD", "text", required=False)
+
+
+# Policy gate. On the agent: AGENTMAIL_GATEWAY=gate:agentmail and
+# TELEGRAM_GATEWAY=gate:telegram send everything through the gate at GATE_URL.
+def gate_url() -> str:
+    return _get("GATE_URL", "", required=False).rstrip("/")
+
+
+def gate_secret() -> str:
+    return _get("GATE_SECRET")
+
+
 STATE_FILE = ROOT / "state.json"

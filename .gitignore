@@ -2,3 +2,10 @@
 state.json
 __pycache__/
 *.pyc
+.venv/
+gather.db*
+gate.json
+gate_audit.jsonl
+event.json
+.env.broken
+gate_secret.txt

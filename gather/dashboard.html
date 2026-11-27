@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gather · Uncle Gus is on duty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600&family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --primary:#5F6F52; --accent:#C4661F; --bg:#FEFAE0; --surface:#FFFDF0; --soft:#F9EBC7;
+          --ink:#2E3628; --muted:#4A5441; --line:#EADFC0; --danger:#783D19; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, sans-serif; }
+  h1, h2, .num { font-family: Outfit, sans-serif; font-weight: 600; }
+  header { background: var(--primary); color: #FEFAE0; }
+  .bar { max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 10px; color: #FEFAE0; }
+  .ring { width: 36px; height: 36px; }
+  .word { font-family: Lexend, Outfit, sans-serif; font-weight: 600; font-size: 26px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+  .chip { padding: 6px 12px; border-radius: 10px; background: rgba(254,250,224,.14); border: 1px solid rgba(254,250,224,.3); }
+  .live { width: 8px; height: 8px; border-radius: 50%; background: #A9B388; display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  main { max-width: 1280px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+  .hero { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between; }
+  .hero h1 { margin: 0; font-size: 38px; line-height: 1.05; }
+  .sub { color: var(--muted); }
+  .gusbox { display: flex; gap: 12px; align-items: center; flex: 1 1 420px; justify-content: flex-end; }
+  .gus { width: 84px; height: 84px; flex: none; }
+  .bubble { background: var(--surface); border: 1px solid var(--line); border-radius: 18px 18px 18px 4px; padding: 12px 14px; max-width: 440px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; }
+  .stat { flex: 1 1 150px; }
+  .stat .num { font-size: 38px; line-height: 1; }
+  .stat .lbl { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .cols { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+  .left { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+  .right { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+  h2 { margin: 0 0 10px; font-size: 20px; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  th { text-align: left; font: 600 11px Outfit, sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--primary); padding: 8px; }
+  td { padding: 11px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+  .small { font-size: 12.5px; color: var(--muted); }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; background: var(--soft); }
+  .s-attending { background: #E4EAD3; color: #3E4A34; } .s-declined { background: #EEE9DD; color: #5B5B50; }
+  .tags span { display: inline-block; background: var(--soft); border-radius: 99px; padding: 4px 12px; margin: 0 6px 6px 0; font-size: 13px; }
+  .flag button { align-self: flex-start; }
+  .flag { background: var(--soft); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; display: flex; gap: 10px; justify-content: space-between; }
+  .flag .k { font: 700 11px Outfit, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+  .f-blocked .k, .f-suspicious .k { color: var(--danger); }
+  button { font: 600 14px Inter, sans-serif; border-radius: 10px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--line); background: #fff; color: var(--ink); min-height: 40px; }
+  button.primary { background: var(--primary); color: #FEFAE0; border-color: var(--primary); }
+  textarea { width: 100%; min-height: 70px; font: 14px Inter, sans-serif; border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #fff; color: var(--ink); }
+  .feed { max-height: 460px; overflow-y: auto; }
+  .feed div { display: flex; gap: 10px; padding: 8px 0; border-top: 1px dashed var(--line); }
+  .feed .t { min-width: 56px; font-size: 12px; color: var(--muted); }
+  .feed .kd { min-width: 70px; font: 700 11px Outfit, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--primary); }
+  .feed .kd.k-blocked, .feed .kd.k-flag { color: var(--danger); } .feed .kd.k-memory { color: var(--accent); }
+  .empty { color: var(--muted); font-style: italic; }
+  code { background: var(--soft); padding: 2px 6px; border-radius: 6px; }
+  [data-acc] { display: none; }
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="brand"><svg class="ring" viewBox="-4 -4 72 72" role="img" aria-label="Gather"><path d="M23.00 16.41 Q25.01 5.92 32.00 3.00 Q38.99 5.92 41.00 16.41 Q51.09 12.91 57.11 17.50 Q58.08 25.01 50.00 32.00 Q58.08 38.99 57.11 46.50 Q51.09 51.09 41.00 47.59 Q38.99 58.08 32.00 61.00 Q25.01 58.08 23.00 47.59 Q12.91 51.09 6.89 46.50 Q5.92 38.99 14.00 32.00 Q5.92 25.01 6.89 17.50 Q12.91 12.91 23.00 16.41 Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round"></path><circle cx="32" cy="32" r="7" style="fill:var(--accent)"></circle></svg><span class="word">gather</span></div>
+  <div class="chips"><span class="chip" id="themeChip">Theme</span><span><span class="live"></span>Uncle Gus is on duty</span></div>
+</div></header>
+
+<main>
+  <section class="hero">
+    <div><h1 id="title">Loading…</h1><div class="sub" id="subtitle"></div></div>
+    <div class="gusbox"><svg class="gus" viewBox="0 0 200 200" role="img" aria-label="Uncle Gus">
+<circle cx="100" cy="100" r="100" style="fill:var(--soft)"></circle>
+<path d="M26 200 Q30 156 72 146 L128 146 Q170 156 174 200 Z" style="fill:var(--primary)" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path>
+<path d="M82 126 L82 150 Q100 160 118 150 L118 126 Z" fill="#F3B38E" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path>
+<path d="M74 148 Q100 170 126 148" fill="none" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path>
+<g data-acc="bow_tie"><path d="M100 156 L84 147 L84 165 Z" style="fill:var(--accent)" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path><path d="M100 156 L116 147 L116 165 Z" style="fill:var(--accent)" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path><circle cx="100" cy="156" r="4" style="fill:var(--accent)" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></circle></g>
+<g data-acc="scarf"><path d="M66 142 Q100 166 134 142 L138 156 Q100 182 62 156 Z" style="fill:var(--accent)" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path><path d="M112 162 L122 198 L104 198 L100 168 Z" style="fill:var(--accent)" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path></g>
+<g data-acc="apron"><path d="M78 156 L122 156 L132 200 L68 200 Z" fill="#FFFFFF" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path><path d="M80 156 L84 142 M120 156 L116 142" fill="none" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path><rect x="90" y="172" width="20" height="14" rx="3" fill="none" stroke="#1B1B1B" stroke-width="3"></rect></g>
+<circle cx="54" cy="94" r="11" fill="#F3B38E" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></circle>
+<circle cx="146" cy="94" r="11" fill="#F3B38E" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></circle>
+<ellipse cx="100" cy="90" rx="45" ry="48" fill="#F3B38E" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></ellipse>
+<path d="M56 82 Q52 52 74 44 Q84 30 102 36 Q120 28 132 42 Q150 50 146 82 Q140 62 124 58 Q112 50 100 56 Q86 50 74 58 Q60 64 56 82 Z" fill="#EDE8DE" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path>
+<path d="M56 96 Q54 132 76 146 Q88 156 100 154 Q112 156 124 146 Q146 132 144 96 Q138 110 126 108 Q114 102 100 106 Q86 102 74 108 Q62 110 56 96 Z" fill="#EDE8DE" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path>
+<path d="M80 114 Q100 142 120 114 Q100 120 80 114 Z" fill="#2B1712" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path>
+<path d="M89 127 Q100 120 111 127 Q100 135 89 127 Z" fill="#E0705F"></path>
+<path d="M76 112 Q88 102 100 108 Q112 102 124 112 Q112 118 100 114 Q88 118 76 112 Z" fill="#EDE8DE" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path>
+<ellipse cx="100" cy="98" rx="10" ry="9" fill="#F3B38E" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></ellipse>
+<ellipse cx="84" cy="84" rx="4.5" ry="6.5" fill="#1B1B1B"></ellipse>
+<ellipse cx="116" cy="84" rx="4.5" ry="6.5" fill="#1B1B1B"></ellipse>
+<circle cx="84" cy="84" r="13" fill="none" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></circle>
+<circle cx="116" cy="84" r="13" fill="none" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></circle>
+<path d="M97 84 Q100 80 103 84" fill="none" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path>
+<path d="M70 64 Q81 57 92 64" fill="none" stroke="#1B1B1B" stroke-width="5" stroke-linecap="round"></path>
+<path d="M108 64 Q119 57 130 64" fill="none" stroke="#1B1B1B" stroke-width="5" stroke-linecap="round"></path>
+<g data-acc="party_hat"><path d="M76 46 L100 2 L124 46 Z" style="fill:var(--accent)" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></path><path d="M88 24 L112 24 M82 36 L118 36" stroke="#1B1B1B" stroke-width="3"></path><circle cx="100" cy="4" r="7" style="fill:var(--primary)" stroke="#1B1B1B" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"></circle></g>
+</svg><div class="bubble" id="bubble">Checking the guest list…</div></div>
+  </section>
+
+  <section class="stats">
+    <div class="card stat"><div class="num" id="c-attending" style="color:var(--primary)">–</div><div class="lbl">Coming</div></div>
+    <div class="card stat"><div class="num" id="c-headcount">–</div><div class="lbl">Total headcount</div></div>
+    <div class="card stat"><div class="num" id="c-waiting" style="color:var(--accent)">–</div><div class="lbl">Waiting to hear</div></div>
+    <div class="card stat"><div class="num" id="c-maybe">–</div><div class="lbl">Maybe</div></div>
+    <div class="card stat"><div class="num" id="c-declined">–</div><div class="lbl">Can't make it</div></div>
+  </section>
+
+  <section class="cols">
+    <div class="left">
+      <div class="card"><h2>Guest list</h2><div class="scroll"><table>
+        <thead><tr><th>Guest</th><th>Status</th><th>Party</th><th>Dietary</th><th>Bringing</th><th>Group</th></tr></thead>
+        <tbody id="guests"></tbody></table></div></div>
+      <div class="cols">
+        <div class="card" style="flex:1 1 280px"><h2>Food &amp; contributions</h2>
+          <div class="small">Dietary needs (confirmed)</div><div class="tags" id="dietary"></div>
+          <div class="small">Being brought</div><div class="tags" id="bringing"></div></div>
+        <div class="card" style="flex:1 1 280px"><h2>Uncle remembers</h2><div id="memories"></div></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="card"><h2>Needs you</h2><div id="flags"></div></div>
+      <div class="card" id="groupCard"><h2>Telegram group</h2><div id="group"></div></div>
+      <div class="card"><h2>Policy gate</h2><div id="gate"></div></div>
+      <div class="card"><h2>What Uncle Gus is doing</h2><div class="feed" id="feed"></div></div>
+    </div>
+  </section>
+  <p class="small" style="text-align:center">Updates every 3 seconds · <span id="updated"></span></p>
+</main>
+
+<script>
+const KEY = new URLSearchParams(location.search).get("key") || "";
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls;
+  if (text !== undefined && text !== null) e.textContent = String(text); return e; };
+const STATUS = { attending: "Coming", maybe: "Maybe", declined: "Can't come", invited: "Invited", new: "Not invited yet" };
+const ago = (ts, now) => { const s = Math.max(0, Math.round(now - ts));
+  return s < 60 ? s + "s ago" : s < 3600 ? Math.round(s/60) + "m ago" : s < 86400 ? Math.round(s/3600) + "h ago" : Math.round(s/86400) + "d ago"; };
+const api = (path, opts = {}) => fetch(`${path}?key=${encodeURIComponent(KEY)}`, opts);
+
+function applyTheme(t) {
+  for (const [k, v] of Object.entries(t.colors)) document.documentElement.style.setProperty("--" + k, v);
+  document.querySelectorAll("[data-acc]").forEach(g => g.style.display = g.dataset.acc === t.accessory ? "inline" : "none");
+  $("themeChip").textContent = "Theme: " + t.label;
+}
+
+function bubbleText(s) {
+  const c = s.counts, waiting = c.invited + c.new, host = (s.event.host_name || "friend");
+  const flags = s.flags.length;
+  let t = `Hello, ${host}. ${c.attending} coming so far`;
+  t += waiting ? `, ${waiting} still quiet. I'm keeping an eye on them.` : ". Everyone has answered!";
+  if (flags) t += ` ${flags} thing${flags > 1 ? "s" : ""} need${flags > 1 ? "" : "s"} you.`;
+  return t;
+}
+
+function render(s) {
+  if (!s.event) { $("title").textContent = "No event yet"; return; }
+  applyTheme(s.theme);
+  const e = s.event;
+  $("title").textContent = e.name || "Your gathering";
+  $("subtitle").textContent = [e.date, e.time, e.location, e.rsvp_by ? "RSVP by " + e.rsvp_by : null, e.budget ? "Budget " + e.budget : null].filter(Boolean).join(" · ");
+  $("bubble").textContent = bubbleText(s);
+  const c = s.counts;
+  $("c-attending").textContent = c.attending; $("c-headcount").textContent = s.headcount;
+  $("c-waiting").textContent = c.invited + c.new; $("c-maybe").textContent = c.maybe; $("c-declined").textContent = c.declined;
+
+  const tb = $("guests"); tb.replaceChildren();
+  for (const g of s.guests) {
+    const tr = el("tr"); const who = el("td"); who.append(el("div", null, g.name));
+    who.append(el("div", "small", g.channel === "none" ? "not reachable yet" : "via " + g.channel));
+    if (g.channel === "none" && g.telegram_link) { const a = el("a", "small", "Telegram invite link"); a.href = g.telegram_link; a.target = "_blank"; who.append(a); }
+    tr.append(who);
+    const st = el("td"); st.append(el("span", "pill s-" + g.status, STATUS[g.status] || g.status));
+    if (g.last_heard) st.append(el("div", "small", "heard " + ago(g.last_heard, s.now)));
+    if (g.followups) st.append(el("div", "small", g.followups + " nudge" + (g.followups > 1 ? "s" : "")));
+    tr.append(st, el("td", null, g.status === "attending" ? g.party_size : "–"),
+      el("td", "small", g.dietary.join(", ") || "–"), el("td", "small", g.bringing || "–"),
+      el("td", "small", g.in_group ? "Joined" : "–"));
+    tb.append(tr);
+  }
+
+  const diet = $("dietary"); diet.replaceChildren();
+  const dk = Object.entries(s.dietary); if (!dk.length) diet.append(el("span", "empty", "None yet"));
+  for (const [d, n] of dk) diet.append(el("span", null, `${d} × ${n}`));
+  const br = $("bringing"); br.replaceChildren();
+  const items = s.guests.filter(g => g.bringing && g.status !== "declined");
+  if (!items.length) br.append(el("span", "empty", "Nothing yet"));
+  for (const g of items) br.append(el("span", null, `${g.bringing} (${g.name})`));
+
+  const mem = $("memories"); mem.replaceChildren();
+  const mems = s.activity.filter(a => a.kind === "memory").slice(0, 4);
+  if (!mems.length) mem.append(el("div", "empty", "Gus remembers guests across events. Memories show up here."));
+  for (const m of mems) { const d = el("div", null, m.text); d.style.marginBottom = "6px"; mem.append(d); }
+
+  const fl = $("flags"); fl.replaceChildren();
+  if (!s.flags.length) fl.append(el("div", "empty", "Nothing needs you right now. Uncle Gus has it handled."));
+  for (const f of s.flags) {
+    const box = el("div", "flag f-" + f.kind); const body = el("div");
+    body.append(el("div", "k", f.kind.replace("_", " ")), el("div", null, f.text), el("div", "small", ago(f.created_at, s.now)));
+    const b = el("button", null, "Done"); b.onclick = async () => { await api(`/api/flags/${f.id}/resolve`, { method: "POST" }); refresh(); };
+    box.append(body, b); fl.append(box);
+  }
+
+  const gr = $("group"); 
+  if (s.group) {
+    if (!gr.dataset.connected) {
+      gr.replaceChildren(); gr.dataset.connected = "1";
+      gr.append(el("div", null, "")); gr.firstChild.id = "groupInfo";
+      const lab = el("label", "small", "Post an update to the group (Gus pins it)"); lab.htmlFor = "announceText";
+      const ta = el("textarea"); ta.id = "announceText"; ta.placeholder = "e.g. Dinner moves to 7 p.m.";
+      const btn = el("button", "primary", "Post update"); btn.style.marginTop = "8px";
+      const res = el("div", "small"); res.id = "announceResult";
+      btn.onclick = async () => {
+        const text = ta.value.trim(); if (!text) return;
+        btn.disabled = true;
+        const r = await api("/api/announce", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+        btn.disabled = false; res.textContent = r.ok ? "Posted and pinned." : "Couldn't post (see Needs you).";
+        if (r.ok) ta.value = ""; refresh();
+      };
+      gr.append(lab, ta, btn, res);
+    }
+    $("groupInfo").textContent = `${s.group.title}: ${s.group.joined} guest${s.group.joined === 1 ? "" : "s"} joined. Gus approved ${s.group.approved} request(s) and declined ${s.group.declined}. Only confirmed guests get in.`;
+  } else {
+    gr.replaceChildren(); delete gr.dataset.connected;
+    gr.append(el("div", null, "No group connected yet. Make a new group (or pick one you already have), add @" + (s.bot || "your bot") + " as an admin with 'Invite users', then send this in the group:"));
+    const p = el("p"); p.append(el("code", null, "/connect " + (s.host_code || ""))); gr.append(p);
+  }
+
+  const gt = $("gate"); gt.replaceChildren();
+  if (!s.gate) gt.append(el("div", "empty", "Not in use: Gus sends directly. Turn on the gate Sprite for enforced rules."));
+  else if (s.gate.error) gt.append(el("div", null, "Can't reach the gate: " + s.gate.error));
+  else {
+    gt.append(el("div", null, `Every email and Telegram message goes through a separate Sprite that Gus can't change. ` +
+      `Allowed ${s.gate.allowed}, blocked ${s.gate.blocked}. Guest list: ${s.gate.guests} address(es); groups connected: ${s.gate.groups}.`));
+    for (const b of (s.gate.recent_blocks || []).slice(0, 3)) gt.append(el("div", "small", "Blocked: " + b.reason));
+  }
+
+  const fd = $("feed"); fd.replaceChildren();
+  for (const a of s.activity.slice(0, 25)) { const r = el("div"); r.append(el("span", "t", ago(a.created_at, s.now)), el("span", "kd k-" + a.kind, a.kind), el("span", null, a.text)); fd.append(r); }
+  $("updated").textContent = "last update " + new Date().toLocaleTimeString();
+}
+
+async function refresh() {
+  try { const r = await api("/api/state"); if (r.ok) render(await r.json()); }
+  catch (err) { $("updated").textContent = "connection lost, retrying…"; }
+}
+refresh(); setInterval(refresh, 3000);
+</script>
+</body>
+</html>

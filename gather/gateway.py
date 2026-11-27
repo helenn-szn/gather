@@ -19,9 +19,30 @@ class GatewayError(RuntimeError):
     pass
 
 
+class PolicyBlocked(GatewayError):
+    """The policy gate refused the request. The message says why."""
+
+
+def _via_gate(service: str, method: str, path: str, params, body) -> dict:
+    from . import config, gate_sign
+    import secrets
+    payload = json.dumps({"service": service, "method": method, "path": path, "params": params,
+                          "body": body, "nonce": secrets.token_hex(8)}).encode()
+    headers = {"Content-Type": "application/json", **gate_sign.sign(config.gate_secret(), payload)}
+    resp = requests.post(config.gate_url() + "/proxy", data=payload, headers=headers, timeout=TIMEOUT)
+    if resp.status_code == 403 and resp.headers.get("Content-Type", "").startswith("application/json") \
+            and resp.json().get("policy_gate"):
+        raise PolicyBlocked(resp.json().get("error", "blocked by policy gate"))
+    if resp.status_code >= 400:
+        raise GatewayError(f"gate {method} {path} -> {resp.status_code}: {resp.text[:300]}")
+    return resp.json() if resp.content else {}
+
+
 def call(method: str, base: str, path: str, *, params=None, body=None,
          retries: int = 2) -> dict:
-    """Send a request through a connector and return the JSON response."""
+    """Send a request through a connector (or the policy gate) and return the JSON."""
+    if base.startswith("gate:"):
+        return _via_gate(base[5:].strip("/"), method, path, params, body)
     url = base.rstrip("/") + "/" + path.lstrip("/")
     last_error = None
     for attempt in range(retries + 1):

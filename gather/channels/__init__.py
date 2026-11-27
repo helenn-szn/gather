@@ -1,4 +1,10 @@
-"""Messaging channels. Each one returns the same IncomingMessage shape."""
+"""Messaging channels. Each one turns its service into the same shape:
+
+    IncomingMessage(channel, sender_id, sender_name, text, reply_ref)
+
+so Uncle's logic doesn't care whether a guest wrote by email or Telegram.
+Adding WhatsApp later means adding one more module here.
+"""
 from dataclasses import dataclass
 
 
